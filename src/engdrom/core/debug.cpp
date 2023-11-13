@@ -1,8 +1,9 @@
 
 /**********************************************************************************/
-/* core/window.cpp                                                                */
+/* core/debug.cpp                                                                 */
 /*                                                                                */
-/* This file implements the methods and functions of the VulkanWindow class       */
+/* This file implements functions to handle debugging the core of the EngDrom     */
+/* engine, and in particular vulkan validation layers                             */
 /**********************************************************************************/
 /*                          This file is part of EngDrom                          */
 /*                           github.com/EngDrom/EngDrom                           */
@@ -28,59 +29,48 @@
 /* SOFTWARE.                                                                      */
 /**********************************************************************************/
 
-#include <engdrom/core/core.h>
-#include <engdrom/core/window.h>
+#include <stdexcept>
+#include <vector>
+#include <cstring>
+#include <engdrom/core/debug.h>
 
-/**
- * Create a vulkan window from a vulkan core
- */
-VulkanWindow::VulkanWindow (VulkanCore* core) {
-    this->mCore = core;
+const std::vector<const char*> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"
+};
+
+bool checkValidationLayerSupport () {
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+    for (const char* layerName : validationLayers) {
+        bool layerFound = false;
+
+        for (const auto& layerProperties : availableLayers) {
+            if (strcmp(layerName, layerProperties.layerName) == 0) {
+                layerFound = true;
+                break;
+            }
+        }
+
+        if (!layerFound) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
-/**
- * Initialize a vulkan window
- */
-void VulkanWindow::create(int width, int height, const char* name) {
-    if (this->mIsCreated) return ;
-    this->mIsCreated = true;
+void applyValidationLayers (VkInstanceCreateInfo &createInfo) {
+    if (ENABLE_VALIDATION_LAYERS) {
+        if (!checkValidationLayerSupport())
+            throw new std::runtime_error("debug.cpp: validation layers requested, but not available.");
 
-    this->mWindow = glfwCreateWindow(width, height, name, NULL, NULL);
-}
-
-/**
- * Destroy the vulkan window, the pointer will no longer be valid after this function call.
- */
-void VulkanWindow::destroy () {
-    if (!this->mIsCreated) return ;
-    this->mIsCreated = false;
-
-    this->mCore->destroyWindow(this);
-
-    glfwDestroyWindow(this->mWindow);
-    this->mWindow = nullptr;
-
-    delete this;
-}
-
-/**
- * @return whether the window has been created 
- */
-bool VulkanWindow::isCreated () {
-    return this->mIsCreated;
-}
-
-/**
- * @return whether the window should close, returns true if the window is not created
-*/
-bool VulkanWindow::shouldClose () {
-    return !this->mIsCreated
-         || glfwWindowShouldClose(this->mWindow);
-}
-
-/**
- * Poll the GLFW events
- */
-void VulkanWindow::pollEvents () {
-    glfwPollEvents();
+        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        createInfo.ppEnabledLayerNames = validationLayers.data();
+    } else {
+        createInfo.enabledLayerCount = 0;
+    }
 }

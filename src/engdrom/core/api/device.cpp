@@ -1,8 +1,8 @@
 
 /**********************************************************************************/
-/* core/window.cpp                                                                */
+/* core/device.cpp                                                                */
 /*                                                                                */
-/* This file implements the methods and functions of the VulkanWindow class       */
+/* This file implements the details for the VulkanDevice class                    */
 /**********************************************************************************/
 /*                          This file is part of EngDrom                          */
 /*                           github.com/EngDrom/EngDrom                           */
@@ -28,59 +28,35 @@
 /* SOFTWARE.                                                                      */
 /**********************************************************************************/
 
-#include <engdrom/core/core.h>
-#include <engdrom/core/window.h>
+#include <vector>
+#include <stdexcept>
+#include <engdrom/core/api/device.h>
+#include <engdrom/core/api/instance.h>
 
-/**
- * Create a vulkan window from a vulkan core
- */
-VulkanWindow::VulkanWindow (VulkanCore* core) {
-    this->mCore = core;
+bool isDeviceSuitable (VkPhysicalDevice device) {
+    return true;
 }
 
-/**
- * Initialize a vulkan window
- */
-void VulkanWindow::create(int width, int height, const char* name) {
-    if (this->mIsCreated) return ;
-    this->mIsCreated = true;
+VkPhysicalDevice VulkanDevice::pickPhysicalDevice (VulkanInstance* instance) {
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
-    this->mWindow = glfwCreateWindow(width, height, name, NULL, NULL);
-}
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, nullptr);
 
-/**
- * Destroy the vulkan window, the pointer will no longer be valid after this function call.
- */
-void VulkanWindow::destroy () {
-    if (!this->mIsCreated) return ;
-    this->mIsCreated = false;
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, devices.data());
 
-    this->mCore->destroyWindow(this);
+    if (deviceCount == 0)
+        throw std::runtime_error("device.cpp: failed to find GPUs with Vulkan support.");
+    
+    for (const auto &device : devices) {
+        if (!isDeviceSuitable(physicalDevice)) continue ;
 
-    glfwDestroyWindow(this->mWindow);
-    this->mWindow = nullptr;
+        physicalDevice = device;
+        break ;
+    }
 
-    delete this;
-}
-
-/**
- * @return whether the window has been created 
- */
-bool VulkanWindow::isCreated () {
-    return this->mIsCreated;
-}
-
-/**
- * @return whether the window should close, returns true if the window is not created
-*/
-bool VulkanWindow::shouldClose () {
-    return !this->mIsCreated
-         || glfwWindowShouldClose(this->mWindow);
-}
-
-/**
- * Poll the GLFW events
- */
-void VulkanWindow::pollEvents () {
-    glfwPollEvents();
+    if (physicalDevice == VK_NULL_HANDLE)
+        throw std::runtime_error("device.cpp: failed to find a GPU supporting the correct properties.");
+    return physicalDevice;
 }

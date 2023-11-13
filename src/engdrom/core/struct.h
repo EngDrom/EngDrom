@@ -41,3 +41,7 @@
 
 class VulkanCore;
 class VulkanWindow;
+
+class VulkanDevice;
+class VulkanInstance;
+class VulkanQueueFamily;

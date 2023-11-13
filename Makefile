@@ -14,3 +14,8 @@ build:
 run:
 	make -B build
 	./out $(ARGS)
+debug:
+	mkdir -p build
+	make -B clean
+	g++ -g -fsanitize=address,undefined -o build/out -I./src $(SOURCES) $(LDFLAGS)
+	cp build/out .

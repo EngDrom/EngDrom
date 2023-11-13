@@ -28,18 +28,26 @@
 /* SOFTWARE.                                                                      */
 /**********************************************************************************/
 
+#include <stdexcept>
+#include <iostream>
 #include <engdrom/core/core.h>
 #include <engdrom/core/window.h>
+
+#include <engdrom/core/api/device.h>
+#include <engdrom/core/api/instance.h>
 
 /**
  * Init the vulkan API and create the necessary backend data
  */
-void VulkanCore::init () {
+void VulkanCore::init (const char* applicationName, int major, int minor, int patch) {
     if (this->mIsLaunched) return ;
     this->mIsLaunched = true;
 
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+    mInstance = VulkanInstance::createInstance(applicationName, major, minor, patch);
+    mDevice   = VulkanDevice::pickPhysicalDevice(mInstance);
 }
 
 /**
@@ -53,6 +61,9 @@ void VulkanCore::cleanup () {
         destroyWindow(this->mWindowsCreated[0]);
 
     glfwTerminate();
+
+    delete mDevice;
+    delete mInstance;
 }
 
 /**
@@ -62,6 +73,14 @@ bool VulkanCore::isLaunched () {
     return this->mIsLaunched;
 }
 
+/**
+ * Create a vulkan window
+ * 
+ * @param width the window width
+ * @param height the window height
+ * @param name the name of the window
+ * @return a pointer to the vulkan window
+ */
 VulkanWindow* VulkanCore::createWindow (int width, int height, const char* name) {
     VulkanWindow* window = new VulkanWindow(this);
     window->create(width, height, name);
@@ -71,6 +90,9 @@ VulkanWindow* VulkanCore::createWindow (int width, int height, const char* name)
     return window;
 }
 
+/**
+ * Destroy a vulkan window, the pointer is no longer valid after this function call
+ */
 void VulkanCore::destroyWindow (VulkanWindow* window) {
     if (window->isCreated())
         window->destroy();

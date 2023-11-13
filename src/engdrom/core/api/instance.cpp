@@ -1,8 +1,8 @@
 
 /**********************************************************************************/
-/* core/window.cpp                                                                */
+/* core/instance.h                                                                */
 /*                                                                                */
-/* This file implements the methods and functions of the VulkanWindow class       */
+/* This file contains the details for the VulkanInstance class                    */
 /**********************************************************************************/
 /*                          This file is part of EngDrom                          */
 /*                           github.com/EngDrom/EngDrom                           */
@@ -28,59 +28,54 @@
 /* SOFTWARE.                                                                      */
 /**********************************************************************************/
 
-#include <engdrom/core/core.h>
-#include <engdrom/core/window.h>
+#include <stdexcept>
 
-/**
- * Create a vulkan window from a vulkan core
- */
-VulkanWindow::VulkanWindow (VulkanCore* core) {
-    this->mCore = core;
+#include <engdrom/core/api/instance.h>
+#include <engdrom/core/debug.h>
+
+VulkanInstance::VulkanInstance (VkInstance instance) {
+    mInstance = instance;
 }
 
-/**
- * Initialize a vulkan window
- */
-void VulkanWindow::create(int width, int height, const char* name) {
-    if (this->mIsCreated) return ;
-    this->mIsCreated = true;
-
-    this->mWindow = glfwCreateWindow(width, height, name, NULL, NULL);
+VkInstance VulkanInstance::getInstance () {
+    return mInstance;
 }
 
-/**
- * Destroy the vulkan window, the pointer will no longer be valid after this function call.
- */
-void VulkanWindow::destroy () {
-    if (!this->mIsCreated) return ;
-    this->mIsCreated = false;
+VulkanInstance* VulkanInstance::createInstance (const char* title, int major, int minor, int patch) {
+    VkApplicationInfo applicationInfo{};
+    applicationInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    applicationInfo.pApplicationName   = title;
+    applicationInfo.applicationVersion = VK_MAKE_VERSION(major, minor, patch);
 
-    this->mCore->destroyWindow(this);
+    applicationInfo.pEngineName        = "EngDrom";
+    applicationInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
+    applicationInfo.apiVersion         = VK_MAKE_VERSION(1, 0, 0);
 
-    glfwDestroyWindow(this->mWindow);
-    this->mWindow = nullptr;
+    VkInstanceCreateInfo createInfo{};
+    createInfo.sType            = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    createInfo.pApplicationInfo = &applicationInfo;
 
-    delete this;
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions;
+
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+    createInfo.enabledExtensionCount   = glfwExtensionCount;
+    createInfo.ppEnabledExtensionNames = glfwExtensions;
+    
+    applyValidationLayers(createInfo);
+
+    VkInstance instance;
+
+    if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+        throw std::runtime_error("core.cpp: failed to create vulkan instance.");
+
+    return new VulkanInstance(instance);
 }
 
-/**
- * @return whether the window has been created 
- */
-bool VulkanWindow::isCreated () {
-    return this->mIsCreated;
-}
+VulkanInstance::~VulkanInstance () {
+    vkDestroyInstance(mInstance, nullptr);
 
-/**
- * @return whether the window should close, returns true if the window is not created
-*/
-bool VulkanWindow::shouldClose () {
-    return !this->mIsCreated
-         || glfwWindowShouldClose(this->mWindow);
-}
-
-/**
- * Poll the GLFW events
- */
-void VulkanWindow::pollEvents () {
-    glfwPollEvents();
+    if (mInstance != nullptr)
+        throw std::runtime_error("core.cpp: failed to create vulkan instance.");
 }

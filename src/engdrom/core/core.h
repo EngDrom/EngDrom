@@ -36,11 +36,14 @@
 
 class VulkanCore {
 private:
+    VulkanInstance*  mInstance;
+    VkPhysicalDevice mDevice;
+
     bool mIsLaunched = false;
 
     std::vector<VulkanWindow*> mWindowsCreated;
 public:
-    void init    ();
+    void init    (const char* applicationName, int major, int minor, int patch);
     void cleanup ();
 
     bool isLaunched ();
