@@ -29,19 +29,30 @@
 /**********************************************************************************/
 
 #include <engdrom/core/core.h>
+#include <engdrom/core/window.h>
 
 /**
  * Init the vulkan API and create the necessary backend data
  */
 void VulkanCore::init () {
+    if (this->mIsLaunched) return ;
     this->mIsLaunched = true;
+
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 }
 
 /**
  * Cleanup the vulkan API and destroy any object that is no longer needed
  */
 void VulkanCore::cleanup () {
+    if (!this->mIsLaunched) return ;
     this->mIsLaunched = false;
+
+    while (this->mWindowsCreated.size() != 0)
+        destroyWindow(this->mWindowsCreated[0]);
+
+    glfwTerminate();
 }
 
 /**
@@ -49,4 +60,25 @@ void VulkanCore::cleanup () {
  */
 bool VulkanCore::isLaunched () {
     return this->mIsLaunched;
+}
+
+VulkanWindow* VulkanCore::createWindow (int width, int height, const char* name) {
+    VulkanWindow* window = new VulkanWindow(this);
+    window->create(width, height, name);
+
+    this->mWindowsCreated.push_back(window);
+
+    return window;
+}
+
+void VulkanCore::destroyWindow (VulkanWindow* window) {
+    if (window->isCreated())
+        window->destroy();
+
+    for (int windowId = 0; windowId < this->mWindowsCreated.size(); windowId ++) {
+        if (this->mWindowsCreated[windowId] != window) continue ;
+
+        this->mWindowsCreated.erase(this->mWindowsCreated.begin() + windowId);
+        break ;
+    }
 }

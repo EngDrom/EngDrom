@@ -1,9 +1,9 @@
 
 /**********************************************************************************/
-/* core/core.h                                                                    */
+/* core/window.h                                                                  */
 /*                                                                                */
-/* This file contains the details for the VulkanCore, which handles               */
-/* initialization and cleanup of the vulkan global APIs.                          */
+/* This file contains the details for the VulkanWindow object and the different   */
+/* methods associated to it.                                                      */
 /**********************************************************************************/
 /*                          This file is part of EngDrom                          */
 /*                           github.com/EngDrom/EngDrom                           */
@@ -31,20 +31,22 @@
 
 #pragma once
 
-#include <vector>
 #include <engdrom/core/struct.h>
 
-class VulkanCore {
+class VulkanWindow {
 private:
-    bool mIsLaunched = false;
+    GLFWwindow* mWindow = nullptr;
+    VulkanCore* mCore   = nullptr;
 
-    std::vector<VulkanWindow*> mWindowsCreated;
+    bool mIsCreated = false;
 public:
-    void init    ();
-    void cleanup ();
+    VulkanWindow (VulkanCore* core);
 
-    bool isLaunched ();
+    void create (int width, int height, const char* name);
+    void destroy ();
 
-    VulkanWindow* createWindow (int width, int height, const char* name);
-    void destroyWindow (VulkanWindow* window);
+    bool isCreated ();
+    bool shouldClose ();
+
+    void pollEvents ();
 };

@@ -1,9 +1,8 @@
 
 /**********************************************************************************/
-/* core/core.h                                                                    */
+/* core/window.cpp                                                                */
 /*                                                                                */
-/* This file contains the details for the VulkanCore, which handles               */
-/* initialization and cleanup of the vulkan global APIs.                          */
+/* This file implements the methods and functions of the VulkanWindow class       */
 /**********************************************************************************/
 /*                          This file is part of EngDrom                          */
 /*                           github.com/EngDrom/EngDrom                           */
@@ -29,22 +28,59 @@
 /* SOFTWARE.                                                                      */
 /**********************************************************************************/
 
-#pragma once
+#include <engdrom/core/core.h>
+#include <engdrom/core/window.h>
 
-#include <vector>
-#include <engdrom/core/struct.h>
+/**
+ * Create a vulkan window from a vulkan core
+ */
+VulkanWindow::VulkanWindow (VulkanCore* core) {
+    this->mCore = core;
+}
 
-class VulkanCore {
-private:
-    bool mIsLaunched = false;
+/**
+ * Initialize a vulkan window
+ */
+void VulkanWindow::create(int width, int height, const char* name) {
+    if (this->mIsCreated) return ;
+    this->mIsCreated = true;
 
-    std::vector<VulkanWindow*> mWindowsCreated;
-public:
-    void init    ();
-    void cleanup ();
+    this->mWindow = glfwCreateWindow(width, height, name, NULL, NULL);
+}
 
-    bool isLaunched ();
+/**
+ * Cleanup the vulkan window
+ */
+void VulkanWindow::destroy () {
+    if (!this->mIsCreated) return ;
+    this->mIsCreated = false;
 
-    VulkanWindow* createWindow (int width, int height, const char* name);
-    void destroyWindow (VulkanWindow* window);
-};
+    this->mCore->destroyWindow(this);
+
+    glfwDestroyWindow(this->mWindow);
+    this->mWindow = nullptr;
+
+    delete this;
+}
+
+/**
+ * @return whether the window has been created 
+ */
+bool VulkanWindow::isCreated () {
+    return this->mIsCreated;
+}
+
+/**
+ * @return whether the window should close, returns true if the window is not created
+*/
+bool VulkanWindow::shouldClose () {
+    return !this->mIsCreated
+         || glfwWindowShouldClose(this->mWindow);
+}
+
+/**
+ * Poll the GLFW events
+ */
+void VulkanWindow::pollEvents () {
+    glfwPollEvents();
+}

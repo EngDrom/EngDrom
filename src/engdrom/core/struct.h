@@ -33,5 +33,11 @@
 
 #pragma once
 
+#include <vulkan/vulkan.h>
+
+// Import glfw3
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 class VulkanCore;
 class VulkanWindow;

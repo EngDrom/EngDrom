@@ -1,2 +1,6 @@
+# compiling
 build
 out
+
+# workspace
+.vscode

@@ -1,4 +1,5 @@
 
+LDFLAGS   := -lglfw -lvulkan -ldl -lpthread -lX11 -lXrandr -lXi
 SOURCEDIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 SOURCES   := $(shell find $(SOURCEDIR) -name '*.cpp')
 
@@ -8,5 +9,8 @@ clean:
 build:
 	mkdir -p build
 	make -B clean
-	g++ -o build/out -I./src $(SOURCES)
+	g++ -o build/out -I./src $(SOURCES) $(LDFLAGS)
 	cp build/out .
+run:
+	make -B build
+	./out $(ARGS)
