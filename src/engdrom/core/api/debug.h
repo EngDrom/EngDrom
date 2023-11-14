@@ -1,6 +1,6 @@
 
 /**********************************************************************************/
-/* core/debug.h                                                                   */
+/* core/api/debug.h                                                               */
 /*                                                                                */
 /* This file contains the details to run the debugging systems of the core such   */
 /* vulkan validation layers                                                       */

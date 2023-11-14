@@ -1,6 +1,6 @@
 
 /**********************************************************************************/
-/* core/debug.cpp                                                                 */
+/* core/api/debug.cpp                                                             */
 /*                                                                                */
 /* This file implements functions to handle debugging the core of the EngDrom     */
 /* engine, and in particular vulkan validation layers                             */

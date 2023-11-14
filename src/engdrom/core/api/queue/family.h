@@ -1,8 +1,8 @@
 
 /**********************************************************************************/
-/* core/api/device.cpp                                                            */
+/* core/api/queue/family.h                                                        */
 /*                                                                                */
-/* This file implements the details for the VulkanDevice class                    */
+/* This file contains the details for the VulkanQueueFamily class                 */
 /**********************************************************************************/
 /*                          This file is part of EngDrom                          */
 /*                           github.com/EngDrom/EngDrom                           */
@@ -28,40 +28,16 @@
 /* SOFTWARE.                                                                      */
 /**********************************************************************************/
 
-#include <vector>
-#include <stdexcept>
-#include <engdrom/core/api/device.h>
-#include <engdrom/core/api/queue/family.h>
-#include <engdrom/core/api/instance.h>
+#include <engdrom/core/struct.h>
 
-bool isDeviceSuitable (VkPhysicalDevice device) {
-    VulkanQueueFamily* family = VulkanQueueFamily::getViewFamily(device);
-    bool hasValidQueueFamily  = family->exists();
+class VulkanQueueFamily {
+private:
+    uint32_t mGraphicsFamily;
+    bool mExists;
+public:
+    VulkanQueueFamily (uint32_t graphicsFamily, bool exists);
 
-    delete family;
-    return hasValidQueueFamily;
-}
+    static VulkanQueueFamily* getViewFamily (VkPhysicalDevice device);
 
-VkPhysicalDevice VulkanDevice::pickPhysicalDevice (VulkanInstance* instance) {
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-
-    uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, nullptr);
-
-    std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, devices.data());
-
-    if (deviceCount == 0)
-        throw std::runtime_error("device.cpp: failed to find GPUs with Vulkan support.");
-    
-    for (const auto &device : devices) {
-        if (!isDeviceSuitable(device)) continue ;
-
-        physicalDevice = device;
-        break ;
-    }
-
-    if (physicalDevice == VK_NULL_HANDLE)
-        throw std::runtime_error("device.cpp: failed to find a GPU supporting the correct properties.");
-    return physicalDevice;
-}
+    bool exists();
+};
