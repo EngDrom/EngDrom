@@ -29,12 +29,29 @@
 /**********************************************************************************/
 
 #include <stdexcept>
+#include <vector>
 
 #include <engdrom/core/api/instance.h>
-#include <engdrom/core/debug.h>
+#include <engdrom/core/api/debug.h>
+
+std::vector<const char*> getRequiredExtensions() {
+    uint32_t glfwExtensionCount = 0;
+    const char** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+    std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+    if (ENABLE_VALIDATION_LAYERS) {
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
+
+    return extensions;
+}
 
 VulkanInstance::VulkanInstance (VkInstance instance) {
     mInstance = instance;
+    mDebugger = new VulkanDebugger();
+    mDebugger->createMessenger(this);
 }
 
 VkInstance VulkanInstance::getInstance () {
@@ -55,27 +72,21 @@ VulkanInstance* VulkanInstance::createInstance (const char* title, int major, in
     createInfo.sType            = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &applicationInfo;
 
-    uint32_t glfwExtensionCount = 0;
-    const char** glfwExtensions;
-
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-    createInfo.enabledExtensionCount   = glfwExtensionCount;
-    createInfo.ppEnabledExtensionNames = glfwExtensions;
+    auto extensions = getRequiredExtensions();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    createInfo.ppEnabledExtensionNames = extensions.data();
     
-    applyValidationLayers(createInfo);
+    VulkanDebugger::applyValidationLayers(createInfo);
 
     VkInstance instance;
 
     if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
         throw std::runtime_error("core.cpp: failed to create vulkan instance.");
-
+    
     return new VulkanInstance(instance);
 }
 
 VulkanInstance::~VulkanInstance () {
+    delete mDebugger;
     vkDestroyInstance(mInstance, nullptr);
-
-    if (mInstance != nullptr)
-        throw std::runtime_error("core.cpp: failed to create vulkan instance.");
 }

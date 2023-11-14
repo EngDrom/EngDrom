@@ -37,4 +37,13 @@
     const bool ENABLE_VALIDATION_LAYERS = true;
 #endif
 
-void applyValidationLayers (VkInstanceCreateInfo &createInfo);
+class VulkanDebugger {
+private:
+    VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
+    VulkanInstance* mInstance = nullptr;
+public:
+    static void applyValidationLayers (VkInstanceCreateInfo &createInfo);
+
+    void createMessenger (VulkanInstance* instance);
+    ~VulkanDebugger();
+};

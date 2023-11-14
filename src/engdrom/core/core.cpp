@@ -104,3 +104,10 @@ void VulkanCore::destroyWindow (VulkanWindow* window) {
         break ;
     }
 }
+
+/**
+ * Destroy a vulkan core object, will cleanup for the user if it hasn't been done
+ */
+VulkanCore::~VulkanCore () {
+    cleanup();
+}

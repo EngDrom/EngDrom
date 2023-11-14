@@ -33,6 +33,7 @@
 class VulkanInstance {
 private:
     VkInstance mInstance;
+    VulkanDebugger* mDebugger;
 public:
     VulkanInstance (VkInstance instance);
 

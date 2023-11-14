@@ -50,4 +50,6 @@ public:
 
     VulkanWindow* createWindow (int width, int height, const char* name);
     void destroyWindow (VulkanWindow* window);
+
+    ~VulkanCore ();
 };

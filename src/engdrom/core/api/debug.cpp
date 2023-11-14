@@ -32,7 +32,13 @@
 #include <stdexcept>
 #include <vector>
 #include <cstring>
-#include <engdrom/core/debug.h>
+#include <engdrom/core/api/debug.h>
+#include <engdrom/core/api/instance.h>
+#include <iostream>
+
+/**********************************************************************************/
+/* Verify that the validation layers exist and apply them to the vulkan instance  */
+/**********************************************************************************/
 
 const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
@@ -63,7 +69,7 @@ bool checkValidationLayerSupport () {
     return true;
 }
 
-void applyValidationLayers (VkInstanceCreateInfo &createInfo) {
+void VulkanDebugger::applyValidationLayers (VkInstanceCreateInfo &createInfo) {
     if (ENABLE_VALIDATION_LAYERS) {
         if (!checkValidationLayerSupport())
             throw new std::runtime_error("debug.cpp: validation layers requested, but not available.");
@@ -73,4 +79,62 @@ void applyValidationLayers (VkInstanceCreateInfo &createInfo) {
     } else {
         createInfo.enabledLayerCount = 0;
     }
+}
+
+/**********************************************************************************/
+/*                                   Vulkan API                                   */
+/**********************************************************************************/
+
+VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData) {
+
+    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+    return VK_FALSE;
+}
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pCallback) {
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        return func(instance, pCreateInfo, pAllocator, pCallback);
+    } else {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT callback, const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        func(instance, callback, pAllocator);
+    }
+}
+
+/**********************************************************************************/
+/*                                   Debug API                                    */
+/**********************************************************************************/
+
+void VulkanDebugger::createMessenger (VulkanInstance* instance) {
+    if (!ENABLE_VALIDATION_LAYERS) return ;
+    if (mDebugMessenger != VK_NULL_HANDLE) return ;
+
+    mInstance = instance;
+
+    VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = debugCallback;
+    createInfo.pUserData = nullptr; 
+
+    if (CreateDebugUtilsMessengerEXT(mInstance->getInstance(), &createInfo, nullptr, &mDebugMessenger) != VK_SUCCESS)
+        throw std::runtime_error("the debug messenger could not be created");
+}
+VulkanDebugger::~VulkanDebugger () {
+    if (mDebugMessenger == VK_NULL_HANDLE)
+        return ;
+    
+    DestroyDebugUtilsMessengerEXT(mInstance->getInstance(), mDebugMessenger, nullptr);
 }

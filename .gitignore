@@ -2,5 +2,8 @@
 build
 out
 
+# debug
+valgrind-out.txt
+
 # workspace
 .vscode

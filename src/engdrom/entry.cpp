@@ -13,5 +13,5 @@ int main () {
     //    window->pollEvents();
     //}
 
-    //core->cleanup();
+    delete core;
 }
