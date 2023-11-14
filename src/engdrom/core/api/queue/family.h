@@ -36,6 +36,7 @@ private:
     bool mExists;
 public:
     VulkanQueueFamily (uint32_t graphicsFamily, bool exists);
+    uint32_t getGraphicsFamily ();
 
     static VulkanQueueFamily* getViewFamily (VkPhysicalDevice device);
 

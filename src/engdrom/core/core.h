@@ -36,8 +36,8 @@
 
 class VulkanCore {
 private:
-    VulkanInstance*  mInstance;
-    VkPhysicalDevice mDevice;
+    VulkanInstance* mInstance;
+    VulkanDevice*   mDevice;
 
     bool mIsLaunched = false;
 

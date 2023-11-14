@@ -55,6 +55,10 @@ VulkanQueueFamily* VulkanQueueFamily::getViewFamily (VkPhysicalDevice device) {
     return new VulkanQueueFamily(0, false);
 }
 
+uint32_t VulkanQueueFamily::getGraphicsFamily () {
+    return mGraphicsFamily;
+}
+
 bool VulkanQueueFamily::exists () {
     return mExists;
 }

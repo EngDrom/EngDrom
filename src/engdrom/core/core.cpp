@@ -33,6 +33,7 @@
 #include <engdrom/core/core.h>
 #include <engdrom/core/window.h>
 
+#include <engdrom/core/api/queue/family.h>
 #include <engdrom/core/api/device.h>
 #include <engdrom/core/api/instance.h>
 
@@ -47,7 +48,9 @@ void VulkanCore::init (const char* applicationName, int major, int minor, int pa
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
     mInstance = VulkanInstance::createInstance(applicationName, major, minor, patch);
-    mDevice   = VulkanDevice::pickPhysicalDevice(mInstance);
+
+    VkPhysicalDevice physicalDevice = VulkanDevice::pickPhysicalDevice(mInstance);
+    mDevice = new VulkanDevice( physicalDevice, VulkanQueueFamily::getViewFamily(physicalDevice) );
 }
 
 /**

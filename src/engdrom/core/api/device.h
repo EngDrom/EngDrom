@@ -31,6 +31,12 @@
 #include <engdrom/core/struct.h>
 
 class VulkanDevice {
+private:
+    VkDevice mDevice;
+    VkQueue  mDeviceQueue;
 public:
+    VulkanDevice (VkPhysicalDevice physicalDevice, VulkanQueueFamily* queueFamily);
+    
     static VkPhysicalDevice pickPhysicalDevice (VulkanInstance* instance);
+    ~VulkanDevice();
 };

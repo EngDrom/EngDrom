@@ -34,6 +34,32 @@
 #include <engdrom/core/api/queue/family.h>
 #include <engdrom/core/api/instance.h>
 
+VulkanDevice::VulkanDevice (VkPhysicalDevice physicalDevice, VulkanQueueFamily* family) {
+    VkDeviceQueueCreateInfo queueCreateInfo{};
+    queueCreateInfo.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = family->getGraphicsFamily();
+    queueCreateInfo.queueCount       = 1;
+
+    float priority = 1.0f;
+    queueCreateInfo.pQueuePriorities = &priority;
+
+    VkPhysicalDeviceFeatures deviceFeatures{};
+
+    VkDeviceCreateInfo createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pQueueCreateInfos = &queueCreateInfo;
+    createInfo.queueCreateInfoCount = 1;
+
+    createInfo.pEnabledFeatures = &deviceFeatures;
+    createInfo.enabledExtensionCount = 0;
+    createInfo.enabledLayerCount = 0;
+
+    if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &mDevice) != VK_SUCCESS)
+        throw std::runtime_error("failed to create logical device!");
+    
+    vkGetDeviceQueue(mDevice, family->getGraphicsFamily(), 0, &mDeviceQueue);
+}
+
 bool isDeviceSuitable (VkPhysicalDevice device) {
     VulkanQueueFamily* family = VulkanQueueFamily::getViewFamily(device);
     bool hasValidQueueFamily  = family->exists();
@@ -64,4 +90,8 @@ VkPhysicalDevice VulkanDevice::pickPhysicalDevice (VulkanInstance* instance) {
     if (physicalDevice == VK_NULL_HANDLE)
         throw std::runtime_error("device.cpp: failed to find a GPU supporting the correct properties.");
     return physicalDevice;
+}
+
+VulkanDevice::~VulkanDevice () {
+    vkDestroyDevice(mDevice, nullptr);
 }
