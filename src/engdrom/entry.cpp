@@ -36,11 +36,11 @@ int main () {
     VulkanCore* core = new VulkanCore();
     core->init("EngDromEditor", 1, 0, 0);
 
-    //VulkanWindow* window = core->createWindow(800, 600, "Vulkan");
+    VulkanWindow* window = core->createWindow(800, 600, "Vulkan");
 
-    //while (!window->shouldClose()) {
-    //    window->pollEvents();
-    //}
+    while (!window->shouldClose()) {
+        window->pollEvents();
+    }
 
     delete core;
 }

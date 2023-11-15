@@ -31,6 +31,12 @@
 #include <engdrom/core/core.h>
 #include <engdrom/core/window.h>
 
+#include <engdrom/core/api/queue/family.h>
+#include <engdrom/core/api/device.h>
+#include <engdrom/core/api/instance.h>
+
+#include <stdexcept>
+
 /**
  * Create a vulkan window from a vulkan core
  */
@@ -46,6 +52,17 @@ void VulkanWindow::create(int width, int height, const char* name) {
     this->mIsCreated = true;
 
     this->mWindow = glfwCreateWindow(width, height, name, NULL, NULL);
+
+    VulkanInstance* coreInstance = this->mCore->getInstance();
+    VkInstance vulkanInstance = coreInstance->asVkInstance();
+
+    if (glfwCreateWindowSurface(vulkanInstance, mWindow, nullptr, &mSurface) != VK_SUCCESS)
+        throw std::runtime_error("failed to create the window surface.");
+
+    VkPhysicalDevice physicalDevice = VulkanDevice::pickPhysicalDevice(mSurface, coreInstance);
+
+    mQueueFamily = VulkanQueueFamily::getViewFamily(mSurface, physicalDevice);
+    mDevice      = new VulkanDevice( physicalDevice, mQueueFamily );
 }
 
 /**
@@ -57,9 +74,13 @@ void VulkanWindow::destroy () {
 
     this->mCore->destroyWindow(this);
 
+    vkDestroySurfaceKHR(this->mCore->getInstance()->asVkInstance(), mSurface, nullptr);
+
     glfwDestroyWindow(this->mWindow);
     this->mWindow = nullptr;
 
+    delete mQueueFamily;
+    delete mDevice;
     delete this;
 }
 

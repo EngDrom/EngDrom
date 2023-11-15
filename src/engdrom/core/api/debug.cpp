@@ -129,12 +129,12 @@ void VulkanDebugger::createMessenger (VulkanInstance* instance) {
     createInfo.pfnUserCallback = debugCallback;
     createInfo.pUserData = nullptr; 
 
-    if (CreateDebugUtilsMessengerEXT(mInstance->getInstance(), &createInfo, nullptr, &mDebugMessenger) != VK_SUCCESS)
+    if (CreateDebugUtilsMessengerEXT(mInstance->asVkInstance(), &createInfo, nullptr, &mDebugMessenger) != VK_SUCCESS)
         throw std::runtime_error("the debug messenger could not be created");
 }
 VulkanDebugger::~VulkanDebugger () {
     if (mDebugMessenger == VK_NULL_HANDLE)
         return ;
     
-    DestroyDebugUtilsMessengerEXT(mInstance->getInstance(), mDebugMessenger, nullptr);
+    DestroyDebugUtilsMessengerEXT(mInstance->asVkInstance(), mDebugMessenger, nullptr);
 }

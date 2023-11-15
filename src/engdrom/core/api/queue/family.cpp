@@ -32,31 +32,48 @@
 #include <engdrom/core/api/queue/family.h>
 #include <iostream>
 
-VulkanQueueFamily::VulkanQueueFamily (uint32_t graphicsFamily, bool exists) {
+VulkanQueueFamily::VulkanQueueFamily (uint32_t graphicsFamily, uint32_t presentFamily, bool exists) {
     this->mGraphicsFamily = graphicsFamily;
+    this->mPresentFamily  = presentFamily;
     this->mExists         = exists;
 }
 
-VulkanQueueFamily* VulkanQueueFamily::getViewFamily (VkPhysicalDevice device) {
+VulkanQueueFamily* VulkanQueueFamily::getViewFamily (VkSurfaceKHR surface, VkPhysicalDevice device) {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
+    uint32_t graphicsFamily, presentFamily;
+    bool foundGraphicsFamily = false, foundPresentFamily = false;
+
     int i = 0;
     for (const auto& queueFamily : queueFamilies) {
-        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-            return new VulkanQueueFamily(i, true);
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            graphicsFamily = i;
+            foundGraphicsFamily = true;
+        }
+
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+
+        if (presentSupport) {
+            presentFamily = i;
+            foundPresentFamily = true;
+        }
 
         i++;
     }
 
-    return new VulkanQueueFamily(0, false);
+    return new VulkanQueueFamily(graphicsFamily, presentFamily, foundGraphicsFamily && foundPresentFamily);
 }
 
 uint32_t VulkanQueueFamily::getGraphicsFamily () {
     return mGraphicsFamily;
+}
+uint32_t VulkanQueueFamily::getPresentFamily () {
+    return mPresentFamily;
 }
 
 bool VulkanQueueFamily::exists () {

@@ -35,8 +35,12 @@
 
 class VulkanWindow {
 private:
-    GLFWwindow* mWindow = nullptr;
-    VulkanCore* mCore   = nullptr;
+    GLFWwindow*        mWindow              = nullptr;
+    VulkanCore*        mCore                = nullptr;
+    VulkanDevice*      mDevice              = nullptr;
+    VulkanQueueFamily* mQueueFamily = nullptr;
+
+    VkSurfaceKHR mSurface = nullptr;
 
     bool mIsCreated = false;
 public:

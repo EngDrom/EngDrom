@@ -33,10 +33,12 @@
 class VulkanDevice {
 private:
     VkDevice mDevice;
-    VkQueue  mDeviceQueue;
+    
+    VkQueue mGraphicsDeviceQueue;
+    VkQueue mPresentDeviceQueue;
 public:
     VulkanDevice (VkPhysicalDevice physicalDevice, VulkanQueueFamily* queueFamily);
     
-    static VkPhysicalDevice pickPhysicalDevice (VulkanInstance* instance);
+    static VkPhysicalDevice pickPhysicalDevice (VkSurfaceKHR surface, VulkanInstance* instance);
     ~VulkanDevice();
 };

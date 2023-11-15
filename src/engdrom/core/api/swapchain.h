@@ -1,9 +1,8 @@
 
 /**********************************************************************************/
-/* core/core.h                                                                    */
+/* core/api/swapchain.h                                                            */
 /*                                                                                */
-/* This file contains the details for the VulkanCore, which handles               */
-/* initialization and cleanup of the vulkan global APIs.                          */
+/* This file contains the details for the VulkanInstance class                    */
 /**********************************************************************************/
 /*                          This file is part of EngDrom                          */
 /*                           github.com/EngDrom/EngDrom                           */
@@ -28,28 +27,3 @@
 /* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE  */
 /* SOFTWARE.                                                                      */
 /**********************************************************************************/
-
-#pragma once
-
-#include <vector>
-#include <engdrom/core/struct.h>
-
-class VulkanCore {
-private:
-    VulkanInstance* mInstance;
-    bool mIsLaunched = false;
-
-    std::vector<VulkanWindow*> mWindowsCreated;
-public:
-    void init    (const char* applicationName, int major, int minor, int patch);
-    void cleanup ();
-
-    bool isLaunched ();
-
-    VulkanInstance* getInstance();
-
-    VulkanWindow* createWindow (int width, int height, const char* name);
-    void destroyWindow (VulkanWindow* window);
-
-    ~VulkanCore ();
-};

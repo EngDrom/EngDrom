@@ -54,7 +54,7 @@ VulkanInstance::VulkanInstance (VkInstance instance) {
     mDebugger->createMessenger(this);
 }
 
-VkInstance VulkanInstance::getInstance () {
+VkInstance VulkanInstance::asVkInstance () {
     return mInstance;
 }
 

@@ -33,12 +33,14 @@
 class VulkanQueueFamily {
 private:
     uint32_t mGraphicsFamily;
+    uint32_t mPresentFamily;
     bool mExists;
 public:
-    VulkanQueueFamily (uint32_t graphicsFamily, bool exists);
+    VulkanQueueFamily (uint32_t graphicsFamily, uint32_t presentFamily, bool exists);
     uint32_t getGraphicsFamily ();
+    uint32_t getPresentFamily ();
 
-    static VulkanQueueFamily* getViewFamily (VkPhysicalDevice device);
+    static VulkanQueueFamily* getViewFamily (VkSurfaceKHR surface, VkPhysicalDevice device);
 
     bool exists();
 };

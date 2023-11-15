@@ -37,7 +37,7 @@ private:
 public:
     VulkanInstance (VkInstance instance);
 
-    VkInstance getInstance ();
+    VkInstance asVkInstance ();
 
     static VulkanInstance* createInstance (const char* title, int major, int minor, int patch);
     
